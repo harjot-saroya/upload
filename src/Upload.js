@@ -6,17 +6,26 @@ class Upload extends Component {
     super(props);
     this.state = { image: "", data: [], id: 0, message: null };
   }
-  putDataToDb = message => {
-    let currentIds = this.state.data.map(data => data.id);
-    let idToBeAdded = 0;
-    while (currentIds.includes(idToBeAdded)) {
-      ++idToBeAdded;
-    }
 
-    axios
-      .post("http://localhost:3000/putData", message)
-      .then(res => console.log(res.data));
+  state = {
+    selectedFile: null
   };
+  putDataToDb = message => {
+    const fd = new FormData();
+    fd.append("image", this.state.selectedFile, this.state.selectedFile.name);
+    console.log(fd);
+    axios
+      .post("http://localhost:3000/putData", fd, {
+        onUploadProgress: progressEvent => {
+          console.log(
+            "Upload Progress: " +
+              (progressEvent.loaded / progressEvent.total) * 100
+          );
+        }
+      })
+      .then(res => console.log(res));
+  };
+
   handleEvent = e => {
     let files = e.target.files;
     let reader = new FileReader();
@@ -24,9 +33,11 @@ class Upload extends Component {
     // connect mongo here
     reader.onload = e => {
       const message = e.target.result;
-      this.putDataToDb(message);
-      console.warn("img data", e.target.result);
+      this.putDataToDb(reader);
     };
+    this.setState({
+      selectedFile: files[0]
+    });
   };
 
   render() {
@@ -37,8 +48,10 @@ class Upload extends Component {
           <input
             type="file"
             class="x"
-            name="file"
-            onChange={e => this.handleEvent(e)}
+            name="myFile"
+            enctype="multipart/form-data"
+            method="POST"
+            onChange={this.handleEvent}
           />
         </div>
       </div>

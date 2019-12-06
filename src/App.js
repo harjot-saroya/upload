@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 import Home from "./home";
 import About from "./About";
 import Upload from "./Upload";
+import Gallery from "./gallery";
 
 class App extends React.Component {
   render() {
@@ -25,12 +26,16 @@ class App extends React.Component {
             <ul>
               <Link to="/about/">About us</Link>
             </ul>
+            <ul>
+              <Link to="/gallery/">Gallery</Link>
+            </ul>
           </div>
           <div class="content">
             <Switch>
               <Route path="/" exact component={Home} />
               <Route path="/about/" component={About} />
               <Route path="/upload/" component={Upload} />
+              <Route path="/gallery/" component={Gallery} />
             </Switch>
           </div>
           <div class="foot"></div>
