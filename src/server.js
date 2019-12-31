@@ -5,6 +5,7 @@ const multer = require("multer");
 const mongoose = require("mongoose");
 const fs = require("fs");
 const app = express();
+var ObjectId = require("mongodb").ObjectID;
 //app.use(multer);
 mongoose.connect("mongodb://localhost:27017/test", {
   useNewUrlParser: true
@@ -37,11 +38,8 @@ app.get("/", (req, res) => {
 });
 
 app.post("/putData", multer(upload).single("image"), (req, res) => {
-  console.log("yes");
   var img = fs.readFileSync(req.file.path);
-  console.log("aa");
   var encode_img = img.toString("base64");
-  var ObjectID = require("mongodb").ObjectID;
   console.log(req.body);
 
   var finalimg = {
@@ -49,33 +47,40 @@ app.post("/putData", multer(upload).single("image"), (req, res) => {
     image: new Buffer(encode_img, "base64")
   };
   const message = req.body;
-  const _id = new ObjectID();
+  //const _id = new ObjectID();
   conn.collection("test").insertOne(finalimg, (err, result) => {
     console.log(result);
     if (err) return console.log(err);
     console.log("Sucessfully saved to DB");
-    res.redirect("/home");
   });
-  return res.json({ success: true });
 });
 
 app.get("/getData", (req, res) => {
-  var ObjectID = require("mongodb").ObjectID;
-  console.log(req.body);
-  const message = req.body;
-  const _id = new ObjectID();
-  //   if ((!id && id !== 0) || !message) {
-  //     return res.json({
-  //       success: false,
-  //       error: "INVALID INPUTS"
-  //     });
-  //   }
-  conn.collection("test").find();
-  return res.json({ success: true });
+  console.log("get passed");
+
+  conn
+    .collection("test")
+    .find()
+    .toArray((err, result) => {
+      const imgArray = result.map(element => element._id);
+      console.log(imgArray);
+
+      if (err) return console.log(err);
+      res.send(imgArray);
+    });
+  //return res.json({ success: true });
 });
 
-app.post("/getPhoto", (req, res) => {
-  return res.json({ success: true });
+app.get("/getData/:id", (req, res) => {
+  var filename = req.params.id;
+  conn
+    .collection("test")
+    .findOne({ _id: ObjectId(filename) }, (err, result) => {
+      if (err) return console.log(err);
+      res.contentType("image/png");
+      res.send(result.image.buffer);
+    });
+  // return res.json({ success: true });
 });
 
 app.post("/fetchAll", (req, res) => {
